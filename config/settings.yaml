@@ -1,0 +1,16 @@
+# Music Factory 设置配置
+
+# 歌名生成模式
+# "original" - 使用原始歌名（与目标歌曲一致）
+# "chorus"   - 使用副歌第一句作为歌名
+title_mode: "original"
+
+# 封面图片风格
+# "realistic" - 写实风景电影感（默认）
+# "anime"     - 日系动漫风格
+cover_style: "realistic"
+
+# 封面是否包含人物背影
+# true  - 包含人物背影/剪影
+# false - 纯风景，无人物
+cover_include_figure: true

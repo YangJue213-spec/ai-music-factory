@@ -1,0 +1,39 @@
+# ============================================
+# 中央API配置文件 - 所有API Key和端点在此管理
+# ============================================
+
+apis:
+  # OpenAI (国内中转)
+  openai:
+    base_url: "https://lingkeapi.com/v1"
+    model: "gpt-5.1-chat"
+    api_key: ""  # 填写你的OpenAI API Key
+    enabled: true
+    
+  # DeepSeek
+  deepseek:
+    base_url: "https://api.deepseek.com/v1"
+    model: "deepseek-chat"
+    api_key: ""  # 填写你的DeepSeek API Key
+    enabled: true
+    
+  # Suno (Acedata中转)
+  suno:
+    base_url: "https://api.acedata.cloud/suno"
+    api_key: ""  # Bearer Token
+    timeout: 300
+    enabled: true
+    
+  # SiliconFlow (AI生图)
+  siliconflow:
+    base_url: "https://api.siliconflow.cn/v1"
+    model: "Kwai-Kolors/Kolors"
+    api_key: ""  # 填写你的SiliconFlow API Key
+    enabled: true
+
+# ============================================
+# 配置说明：
+# 1. 在此文件直接填写API Key，或使用环境变量：${API_KEY_NAME}
+# 2. enabled: false 可临时禁用某个API
+# 3. base_url/model 可根据你的中转服务商修改
+# ============================================

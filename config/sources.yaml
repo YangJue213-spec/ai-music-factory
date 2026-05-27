@@ -1,0 +1,39 @@
+# 音乐源配置 - 监控艺人和榜单
+
+# 监控艺人新专辑（3天内发布）
+# 格式：字符串列表（与主项目保持一致）
+monitored_artists:
+  - "任夏"
+  - "田园"
+  - "烟嗓船长"
+  - "黄静美"
+  - "杨不乖"
+  - "艺凌"
+  - "龙翼"
+  - "王娜"
+  - "王一佳"
+  - "方辰"
+  - "阿美呀"
+  - "孔有才"
+  - "马健涛"
+  - "洋澜一"
+  - "恰恰恰恰恰"
+  - "韩小欠"
+  - "金钰双双"
+  - "花姐"
+  - "慕容晓晓"
+  - "烟嗓超哥"
+  - "老板"
+  - "陈磐"
+  - "原来是夏夏"
+  - "睦焱"
+
+# 榜单监控源
+# 格式：列表，每个元素包含 name, url, enabled 字段
+chart_sources:
+  - name: "酷狗飙升榜"
+    url: "http://mobilecdn.kugou.com/api/v3/rank/song?rankid=6666&page=1&pagesize=100"
+    enabled: true
+  - name: "酷狗新歌榜"
+    url: "http://mobilecdn.kugou.com/api/v3/rank/song?rankid=31308&page=1&pagesize=100"
+    enabled: true
