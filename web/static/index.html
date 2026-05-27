@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Shadow - 音乐生成工厂</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo-script">Music Shadow</h1>
+            <p>音乐生成工厂 — 可视化控制台</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="control">控制面板</button>
+            <button class="tab-btn" data-tab="sources">音乐源管理</button>
+            <button class="tab-btn" data-tab="singers">歌手库</button>
+            <button class="tab-btn" data-tab="config">API配置</button>
+            <button class="tab-btn" data-tab="files">文件管理</button>
+            <button class="tab-btn" data-tab="dedup">去重检查</button>
+            <button class="tab-btn" data-tab="logs">运行日志</button>
+        </nav>
+
+        <!-- 控制面板 - Bento Grid 布局 -->
+        <section id="control" class="tab-content active">
+            <!-- Bento 1: 运行控制 -->
+            <div class="card">
+                <h2>运行控制</h2>
+                <div class="control-group">
+                    <label>生成数量（首）</label>
+                    <input type="number" id="song-count" value="5" min="1" max="50">
+                </div>
+                <div class="btn-group">
+                    <button id="btn-start" class="btn btn-primary">▶ 开始生成</button>
+                    <button id="btn-stop" class="btn btn-danger" disabled>⏹ 停止</button>
+                </div>
+                <div id="status-display" class="status-box">
+                    <div class="status-indicator idle"></div>
+                    <span id="status-text">就绪</span>
+                </div>
+            </div>
+
+            <!-- Bento 2: 快速设置 -->
+            <div class="card">
+                <h2>快速设置</h2>
+                <div class="settings-section compact">
+                    <h3>歌名生成模式</h3>
+                    <div class="setting-item-inline">
+                        <label class="radio-label-inline">
+                            <input type="radio" name="title-mode-control" value="original" checked>
+                            <span>与目标歌曲同名</span>
+                        </label>
+                        <label class="radio-label-inline">
+                            <input type="radio" name="title-mode-control" value="chorus">
+                            <span>使用副歌第一句</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section compact">
+                    <h3>封面图片风格</h3>
+                    <div class="setting-item-inline">
+                        <label class="radio-label-inline">
+                            <input type="radio" name="cover-style-control" value="realistic" checked>
+                            <span>写实风景电影感</span>
+                        </label>
+                        <label class="radio-label-inline">
+                            <input type="radio" name="cover-style-control" value="anime">
+                            <span>日系动漫风格</span>
+                        </label>
+                    </div>
+                    <div class="setting-item-inline checkbox-inline">
+                        <label class="checkbox-label-inline">
+                            <input type="checkbox" id="cover-figure-control" checked>
+                            <span>包含人物背影/剪影</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="btn-save-settings-control" class="btn btn-primary">保存设置</button>
+                <span id="settings-save-status-control" class="save-status"></span>
+            </div>
+
+            <!-- Bento 3: 实时状态 -->
+            <div class="card">
+                <h2>实时状态</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">当前阶段</span>
+                        <span id="stat-stage" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已采集</span>
+                        <span id="stat-fetched" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已清洗</span>
+                        <span id="stat-cleaned" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">已生成</span>
+                        <span id="stat-generated" class="stat-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bento 4: 进度条（全宽） -->
+            <div class="card">
+                <div class="progress-container">
+                    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <div id="current-stage" class="stage-info">等待开始...</div>
+            </div>
+        </section>
+
+        <!-- 音乐源管理 -->
+        <section id="sources" class="tab-content">
+            <div class="card">
+                <h2>音乐源管理</h2>
+                
+                <!-- 监控艺人 -->
+                <div class="sources-section">
+                    <div class="section-header">
+                        <h3>监控艺人</h3>
+                        <span class="hint">勾选启用监控，点击添加新艺人</span>
+                    </div>
+                    <div class="sources-list" id="monitored-artists">
+                        <div class="loading">加载中...</div>
+                    </div>
+                    <div class="add-source-form">
+                        <input type="text" id="new-artist-name" placeholder="输入艺人名称">
+                        <button id="btn-add-artist" class="btn">添加艺人</button>
+                    </div>
+                </div>
+
+                <!-- 榜单监控 -->
+                <div class="sources-section">
+                    <div class="section-header">
+                        <h3>榜单监控</h3>
+                        <span class="hint">勾选启用榜单爬取</span>
+                    </div>
+                    <div class="sources-list" id="chart-sources">
+                        <div class="loading">加载中...</div>
+                    </div>
+                    <div class="add-source-form">
+                        <input type="text" id="new-chart-name" placeholder="榜单名称">
+                        <input type="text" id="new-chart-url" placeholder="榜单URL">
+                        <button id="btn-add-chart" class="btn">添加榜单</button>
+                    </div>
+                </div>
+
+                <button id="btn-save-sources" class="btn btn-primary">保存音乐源</button>
+                <span id="sources-save-status" class="save-status"></span>
+            </div>
+        </section>
+
+        <!-- 歌手库管理 -->
+        <section id="singers" class="tab-content">
+            <div class="card">
+                <h2>歌手库管理</h2>
+                <div class="hint" style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: 1.5rem;">
+                    用于AI生成时的歌手名称匹配
+                </div>
+                
+                <!-- 男歌手 -->
+                <div class="singers-section">
+                    <div class="section-header">
+                        <h3>男歌手</h3>
+                        <button class="btn btn-small btn-add-singer" data-gender="male">添加</button>
+                    </div>
+                    <div class="singers-tags" id="male-singers">
+                        <!-- 动态填充 -->
+                    </div>
+                    <div class="add-singer-form" id="add-male-form" style="display:none;">
+                        <input type="text" class="new-singer-input" placeholder="歌手名称">
+                        <button class="btn btn-confirm-add" data-gender="male">✓</button>
+                        <button class="btn btn-cancel-add" data-gender="male">✗</button>
+                    </div>
+                </div>
+
+                <!-- 女歌手 -->
+                <div class="singers-section">
+                    <div class="section-header">
+                        <h3>女歌手</h3>
+                        <button class="btn btn-small btn-add-singer" data-gender="female">添加</button>
+                    </div>
+                    <div class="singers-tags" id="female-singers">
+                        <!-- 动态填充 -->
+                    </div>
+                    <div class="add-singer-form" id="add-female-form" style="display:none;">
+                        <input type="text" class="new-singer-input" placeholder="歌手名称">
+                        <button class="btn btn-confirm-add" data-gender="female">✓</button>
+                        <button class="btn btn-cancel-add" data-gender="female">✗</button>
+                    </div>
+                </div>
+
+                <button id="btn-save-singers" class="btn btn-primary">保存歌手库</button>
+                <span id="singers-save-status" class="save-status"></span>
+            </div>
+        </section>
+
+        <!-- API配置 -->
+        <section id="config" class="tab-content">
+            <div class="card">
+                <h2>API 密钥配置</h2>
+                <div class="api-config">
+                    <div class="api-item" data-provider="deepseek">
+                        <label>DeepSeek API Key</label>
+                        <div class="api-input-group">
+                            <input type="password" id="api-deepseek" placeholder="输入 API Key" class="api-input">
+                            <span class="api-status" id="status-deepseek">未配置</span>
+                            <button class="btn btn-small btn-edit" data-provider="deepseek" style="display:none;">修改</button>
+                        </div>
+                    </div>
+                    <div class="api-item" data-provider="openai">
+                        <label>OpenAI API Key</label>
+                        <div class="api-input-group">
+                            <input type="password" id="api-openai" placeholder="输入 API Key" class="api-input">
+                            <span class="api-status" id="status-openai">未配置</span>
+                            <button class="btn btn-small btn-edit" data-provider="openai" style="display:none;">修改</button>
+                        </div>
+                    </div>
+                    <div class="api-item" data-provider="suno">
+                        <label>Suno API Key</label>
+                        <div class="api-input-group">
+                            <input type="password" id="api-suno" placeholder="输入 API Key" class="api-input">
+                            <span class="api-status" id="status-suno">未配置</span>
+                            <button class="btn btn-small btn-edit" data-provider="suno" style="display:none;">修改</button>
+                        </div>
+                    </div>
+                    <div class="api-item" data-provider="siliconflow">
+                        <label>SiliconFlow API Key</label>
+                        <div class="api-input-group">
+                            <input type="password" id="api-siliconflow" placeholder="输入 API Key" class="api-input">
+                            <span class="api-status" id="status-siliconflow">未配置</span>
+                            <button class="btn btn-small btn-edit" data-provider="siliconflow" style="display:none;">修改</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button id="btn-save-config" class="btn btn-primary">保存配置</button>
+                    <button id="btn-check-env" class="btn">检查环境</button>
+                </div>
+                <div id="env-check-result" class="env-check-result" style="display:none;"></div>
+                <div class="api-links">
+                    <p>获取 API Key:</p>
+                    <a href="https://platform.deepseek.com" target="_blank">DeepSeek →</a>
+                    <a href="https://platform.openai.com" target="_blank">OpenAI →</a>
+                    <a href="https://www.acedata.cloud" target="_blank">Suno →</a>
+                    <a href="https://siliconflow.cn" target="_blank">SiliconFlow →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件管理 -->
+        <section id="files" class="tab-content">
+            <div class="card">
+                <h2>生成文件管理</h2>
+                
+                <!-- 归档功能区 -->
+                <div class="archive-section">
+                    <h3>文件归档</h3>
+                    <div class="archive-controls">
+                        <div class="archive-input-group">
+                            <label>归档数量:</label>
+                            <input type="number" id="archive-count" value="10" min="1" max="100" placeholder="0=全部">
+                            <span class="hint">首 (0 = 全部归档)</span>
+                        </div>
+                        <button id="btn-archive" class="btn btn-primary">执行归档</button>
+                    </div>
+                    <div id="archive-status" class="archive-status"></div>
+                    <div id="archive-result" class="archive-result" style="display:none;"></div>
+                </div>
+                
+                <div class="file-actions">
+                    <button id="btn-refresh-files" class="btn">刷新</button>
+                    <button id="btn-open-folder" class="btn">打开文件夹</button>
+                </div>
+                <div id="file-list" class="file-list">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 生成设置 -->
+        <section id="settings" class="tab-content">
+            <div class="card">
+                <h2>生成设置</h2>
+                
+                <div class="settings-section">
+                    <h3>歌名生成模式</h3>
+                    <div class="setting-item">
+                        <label class="radio-label">
+                            <input type="radio" name="title-mode" value="original" checked>
+                            <span>与目标歌曲同名（推荐）</span>
+                            <small>使用原始歌名作为生成歌曲的名字</small>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="radio-label">
+                            <input type="radio" name="title-mode" value="chorus">
+                            <span>使用副歌第一句</span>
+                            <small>从生成的歌词中提取副歌第一句作为歌名</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>封面图片风格</h3>
+                    <div class="setting-item">
+                        <label class="radio-label">
+                            <input type="radio" name="cover-style" value="realistic" checked>
+                            <span>写实风景电影感（推荐）</span>
+                            <small>写实风格，风景为主，电影感光影</small>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="radio-label">
+                            <input type="radio" name="cover-style" value="anime">
+                            <span>日系动漫风格</span>
+                            <small>日系ACG风格，色彩鲜明</small>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>封面人物元素</h3>
+                    <div class="setting-item checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="cover-figure" checked>
+                            <span>包含人物背影/剪影</span>
+                            <small>在风景中加入人物元素，增加意境</small>
+                        </label>
+                    </div>
+                </div>
+
+                <button id="btn-save-settings" class="btn btn-primary">保存设置</button>
+                <span id="settings-save-status" class="save-status"></span>
+            </div>
+        </section>
+
+        <!-- 去重检查 -->
+        <section id="dedup" class="tab-content">
+            <div class="card">
+                <h2>去重库状态</h2>
+                <div class="dedup-stats">
+                    <div class="big-stat">
+                        <span id="dedup-count" class="big-number">0</span>
+                        <span class="big-label">已生成歌曲数</span>
+                    </div>
+                </div>
+                <div class="dedup-list">
+                    <h3>已生成歌曲列表（前20首）</h3>
+                    <ul id="dedup-samples"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 运行日志 -->
+        <section id="logs" class="tab-content">
+            <div class="card">
+                <h2>运行日志</h2>
+                <div class="log-actions">
+                    <button id="btn-refresh-logs" class="btn">刷新</button>
+                    <button id="btn-clear-logs" class="btn">清空</button>
+                </div>
+                <div id="log-container" class="log-container">
+                    <pre id="log-content">等待日志...</pre>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="static/app.js"></script>
+</body>
+</html>
